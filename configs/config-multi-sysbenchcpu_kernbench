@@ -31,3 +31,10 @@ export SYSBENCHCPU_ITERATIONS=7
 
 #export MULTI_SHUTDOWN_SYSBENCHCPU="yes"
 export MULTI_SHUTDOWN_KERNBENCH="yes"
+
+#core scheduling
+export ENABLE_CORE_SCHEDULING="yes" #will enable core scheduling
+
+#tell wich task needs to run with core scheduling enabled
+#if this var is not set, then all tests will run with core scheduling enabled.
+export ENABLE_CORE_SCHEDULING_ON_TEST="sysbenchcpu"

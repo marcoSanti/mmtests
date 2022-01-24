@@ -19,6 +19,52 @@ function die() {
 
 setup_dirs
 
+#setup of core scheduling
+#if ENABLE_CORE_SCHEDULING is set to "yes" then core scheduling is enabled
+#if ENABLE_CORE_SCHEDULING_START_PID is set to a <pid>, then the test will be added to the core scheduling group of <pid>
+
+#the following var is used to control the behaviour of core scheduling in multi-bench.
+#if ENABLE_CORE_SCHEDULING_ON_TEST is set to the test curently running (ie. sysbenchcpu), then core scheduling will be set only to that test
+#if ENABLE_CORE_SCHEDULING_ON_TEST is set but not to the currently running test, core scheduling will not be set on the current test
+#if ENABLE_CORE_SCHEDULING_ON_TEST is not set, but ENABLE_CORE_SCHEDULING is, core scheduling will be set to all the test
+
+if [ "$ENABLE_CORE_SCHEDULING" == "yes" ]; then
+	#if not root,
+	if [[ "$EUID" -ne 0 ]]; then
+		echo "WARNING: You are not running test as root, which is required in order to set up core scheduling."
+		echo "Test will continue without core scheduling"
+	fi
+
+	if ! type "coreschedtool" &> /dev/null;  then #if root but coreschedtool is not present
+		echo
+		echo "You have not installed coreschedtool, which is required to use core scheduling."
+		echo "coreschedtool will be downloaded from https://github.com/marcoSanti/coreschedtool and installed on your system"
+		echo
+
+		git clone https://github.com/marcoSanti/coreschedtool.git $SHELLPACK_SOURCES/coreschedtool
+		make -C $SHELLPACK_SOURCES/coreschedtool install DESTDIR="$SCRIPTDIR/bin"
+
+	fi
+	#set core scheduling only if test is not multi and if not on install_only, and test is run as root
+	if [ "$INSTALL_ONLY" != "yes" ] && [ "$1" != "multi" ]; then
+		#if the test is the one specified into ENABLE_CORE_SCHEDULING_ON_TEST (or if notthing is specified)
+		if [ "$ENABLE_CORE_SCHEDULING_ON_TEST" == "$1" ] || [ "$ENABLE_CORE_SCHEDULING_ON_TEST" == "" ]; then
+			#if it is required to add the test to an already existing core scheduling group
+			if ["$ENABLE_CORE_SCHEDULING_START_PID" == ""]; then
+				coreschedtool -v $$
+			else
+				coreschedtool -v -add $$ -to $ENABLE_CORE_SCHEDULING_START_PID
+			fi
+		#if the current test is not the one on ENABLE_CORE_SCHEDULING_ON_TEST
+		else
+			coreschedtool -clear $$
+		fi
+	fi
+fi
+
+#end of core scheduling setup
+
+
 # Load the driver script
 NAME=$1
 if [ "$NAME" = "" ]; then
