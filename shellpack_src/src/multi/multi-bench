@@ -1,17 +1,17 @@
 #!/bin/bash
 # This is not a benchmark, instead it is responsible for running
 # multiple benchmarks simultaneously to measure potential
-# interference
+# interference 
 ###SHELLPACK preamble multi-bench 0
 
-cd $SHELLPACK_TOPLEVEL
+cd $SHELLPACK_TOPLEVEL 
 ###SHELLPACK init_only_start
 	# Check benchmark is supported for parallel use
 	for MULTI_TEST in $MULTI_TESTS; do
 		case $MULTI_TEST in
 		kernbench)
 			echo -n "Supported: kernbench"
-			MULTI_SHUTDOWN=$MULTI_SHUTDOWN_KERNBENCH
+			MULTI_SHUTDOWN="$MULTI_SHUTDOWN_KERNBENCH"
 			;;
 		netperf-*)
 			echo -n "Supported: netperf"
@@ -20,6 +20,10 @@ cd $SHELLPACK_TOPLEVEL
 		tbench4)
 			echo -n "Supported: tbench4"
 			MULTI_SHUTDOWN="$MULTI_SHUTDOWN_TBENCH"
+			;;
+		sysbenchcpu)
+			echo -n "Supported: sysbenchcpu"
+			MULTI_SHUTDOWN="$MULTI_SHUTDOWN_SYSBENCHCPU"
 			;;
 		*)
 			die "Unknown benchmark $MULTI_TEST for running under multi"
@@ -60,6 +64,12 @@ PIDINDEX=0
 for MULTI_TEST in $MULTI_TESTS; do
 	case $MULTI_TEST in
 	kernbench)
+		if [ "$MULTI_SHUTDOWN_KERNBENCH" = "yes" ]; then
+			#obtain all make pids from ps wich have vmlinux as target
+			KERNBENCH_PID=`ps -aux | grep 'make [-j[0-9]*]* vmlinux' | awk '{printf "%s ", $2}'`
+			echo Sending SIGINT to kernbench pid $KERNBENCH_PID
+			kill -HUP $KERNBENCH_PID
+		fi
 		echo Waiting on $MULTI_TEST to complete
 		wait_on_pid_exit ${PIDS[$PIDINDEX]}
 		;;
@@ -77,6 +87,16 @@ for MULTI_TEST in $MULTI_TESTS; do
 			kill -HUP $TBENCH_PID
 		fi
 		echo Waiting on controller to exit
+		wait_on_pid_exit ${PIDS[$PIDINDEX]}
+		;;
+
+	sysbenchcpu)
+		if [ "$MULTI_SHUTDOWN_SYSBENCHCPU" = "yes" ]; then
+			SYSBENCHCPU_PID=`cat /tmp/mmtest_sysbenchcpu.pid`
+			echo Sending SIGINT to sysbenchcpu pid $SYSBENCHCPU_PID
+			kill -HUP $SYSBENCHCPU_PID
+		fi
+		echo Waiting on $MULTI_TEST to complete
 		wait_on_pid_exit ${PIDS[$PIDINDEX]}
 		;;
 	*)

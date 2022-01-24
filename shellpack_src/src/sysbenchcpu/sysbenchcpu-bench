@@ -24,7 +24,14 @@ export PATH=$SHELLPACK_SOURCES/sysbenchbuild-${VERSION}-installed/bin:$PATH
 	###SHELLPACK iteration_begin $ITERATIONS
 		echo Running $NR_THREADS threads Iteration $ITERATION/$ITERATIONS
 		eval $TIME_CMD -o $LOGDIR_RESULTS/time-${NR_THREADS}-${ITERATION}	\
-			$BENCH_CMD >> $LOGDIR_RESULTS/sysbench-raw-$NR_THREADS-$ITERATION
+			$BENCH_CMD >> $LOGDIR_RESULTS/sysbench-raw-$NR_THREADS-$ITERATION & #used to allow for multi-bench shutdown
+		
+		
+		SYSBENCH_PID=$!
+		echo $SYSBENCH_PID>/tmp/mmtest_sysbenchcpu.pid
+		wait $SYSBENCH_PID
+		#end of used to allow for a shutdown of test in multi-bench
+		
 		SYSRET=$?
 		if [ $SYSRET -ne 0 ]; then
 			cat $LOGDIR_RESULTS/sysbench-raw-$NR_THREADS-$ITERATION

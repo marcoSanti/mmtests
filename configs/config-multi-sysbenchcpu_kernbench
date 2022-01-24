@@ -1,0 +1,33 @@
+#multi test for sysbenchcpu and kernbench to run with core scheduling enabled
+#mmtest params
+export MMTESTS="multi"
+export MULTI_TESTS="sysbenchcpu kernbench"
+
+# List of monitors
+export RUN_MONITOR=yes
+export MONITORS_ALWAYS=
+export MONITORS_GZIP="proc-vmstat mpstat mpstat perf-time-stat"
+export MONITORS_WITH_LATENCY="vmstat"
+export MONITOR_PERF_EVENTS=cpu-migrations,context-switches
+export MONITOR_UPDATE_FREQUENCY=10
+
+# kernbench
+export KERNBENCH_ITERATIONS=5
+export KERNBENCH_MIN_THREADS=$NUMCPUS
+export KERNBENCH_MAX_THREADS=$NUMCPUS
+export KERNBENCH_VERSION=5.14
+export KERNBENCH_SKIP_WARMUP="yes"
+
+#sysbench params with core scheduling
+export SYSBENCHCPU_MAX_PRIME=25000
+export SYSBENCHCPU_MIN_THREADS=1
+export SYSBENCHCPU_MAX_THREADS=$((NUMCPUS*2))
+export SYSBENCHCPU_ITERATIONS=7
+
+#setting multi shutdown to yes for the target test means that once the other test has finished, the targeted test will be
+#stopped. if the targeted test of multi shutdown is the first test, then it will not run so be careful!
+#in this file (as it is configured), kernbenc will only run as long as sysbenchcpu will be running.
+#Be aware that if kernbench ends before sysbenc, then it will not be restarted and only sysbench will be running.
+
+#export MULTI_SHUTDOWN_SYSBENCHCPU="yes"
+export MULTI_SHUTDOWN_KERNBENCH="yes"
