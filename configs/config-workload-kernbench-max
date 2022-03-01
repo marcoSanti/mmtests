@@ -3,7 +3,6 @@
 ### compiler used. In this configuraiton, it's allmodconfig build of the full
 ### kernel 4.4 with all CPUs in use.
 
-# MM Test Parameters
 export MMTESTS="kernbench"
 
 # Test disk to setup (optional)
@@ -20,8 +19,8 @@ export MMTESTS="kernbench"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat mpstat"
-export MONITORS_WITH_LATENCY="vmstat"
+export MONITORS_GZIP="proc-vmstat mpstat iotop"
+export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 
 # kernbench

@@ -4,7 +4,6 @@
 ### expected that fixing any problems shown by this benchmark would also
 ### be of benefit to postgres.
 
-# MM Test Parameters
 export MMTESTS="pgioperfinit pgioperfbench"
 
 # Test disk to setup (optional)
@@ -21,7 +20,7 @@ export MMTESTS="pgioperfinit pgioperfbench"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top"
+export MONITORS_GZIP="proc-vmstat top iotop"
 export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 export MONITOR_TOP_ACTIVEONLY=yes

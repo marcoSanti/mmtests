@@ -3,8 +3,9 @@
 ### It is intended as a stress tool to detect where the saturation point is.
 ### The results can be tricky to interpret as it cycles through a load file
 ### and the results partially depend on where in the loadfile the benchmark
-### was when the time runs out. This configuration uses asyncronous IO and
-### varies the number of clients up to NUMCPUS*8.
+### was when the time runs out. This configuration uses async after the IO
+### completes (-F switch to the benchmark specifically) and varies the number
+### of clients up to NUMCPUS*4.
 ###
 ### This is a modified version of the benchmark to reduce variation. The
 ### filesystem is limited in size to offset variations due to disk
@@ -14,8 +15,6 @@
 ### completed. The metric reported is time to complete execution as
 ### throughput is difficult to interpret when different operations take
 ### different amounts of time.
-
-# MM Test Parameters
 export MMTESTS="dbench4"
 
 # Test disk to setup (optional)
@@ -32,7 +31,7 @@ export MMTESTS="dbench4"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top iotop mpstat"
+export MONITORS_GZIP="proc-vmstat turbostat mpstat iotop"
 export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 
@@ -42,7 +41,7 @@ export DBENCH_OSYNC=no
 export DBENCH_SYNC_DIRECTORY=no
 export DBENCH_FSYNC=no
 export DBENCH_MIN_CLIENTS=1
-export DBENCH_MAX_CLIENTS=$((NUMCPUS*8))
+export DBENCH_MAX_CLIENTS=$((NUMCPUS*4))
 
 # Force small filesystem size to limit variations of the test due to
 # differences in inode placement in the partition. Each client needs ~25 MB

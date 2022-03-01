@@ -3,7 +3,6 @@
 . $SHELLPACK_INCLUDE/include-sizes.sh
 get_numa_details
 
-# MM Test Parameters
 export MMTESTS="kvmstart"
 
 # Test disk to setup (optional)
@@ -22,7 +21,7 @@ export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
 #export MONITORS_TRACER="perf-event-stat"
 export MONITORS_GZIP="proc-vmstat top numa-numastat numa-meminfo numa-convergence numa-scheduling mpstat"
-export MONITORS_WITH_LATENCY="vmstat iostat"
+export MONITORS_WITH_LATENCY="vmstat"
 export MONITOR_UPDATE_FREQUENCY=10
 export MONITOR_PERF_EVENTS=node-load-misses,node-store-misses
 

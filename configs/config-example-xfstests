@@ -1,19 +1,15 @@
 ### xfstests are a filesystem regression testsuite
 
-# MM Test Parameters
 export MMTESTS="xfstests"
-
 
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
 export MONITORS_GZIP="proc-vmstat top"
-export MONITORS_WITH_LATENCY="vmstat iostat"
+export MONITORS_WITH_LATENCY="vmstat"
 export MONITOR_UPDATE_FREQUENCY=10
 
 # xfstests
-export XFSTESTS_TEST_DEV=$TESTDISK_PARTITION
-TESTDISK_PARTITION=''
 export XFSTESTS_SCRATCH_DEV_POOL='/dev/sdc /dev/sdd /dev/sde /dev/sdf /dev/sdg'
 # extra arguments passed to ./check, could be eg. a specific test to run like
 # XFSTESTS_ARGS='generic/001'

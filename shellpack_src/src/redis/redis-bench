@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script installs redis and runs the benchmark suite tests
-###SHELLPACK preamble redis-bench 3.0.5
+###SHELLPACK preamble redis-bench 6.2.6
 
 TASKSET_SERVER=
 TASKSET_CLIENT=
@@ -16,16 +16,17 @@ fi
 ###SHELLPACK parseargParam    --persistence  REDIS_PERSISTENCE
 ###SHELLPACK parseargParam    --requests     REDIS_REQUESTS
 ###SHELLPACK parseargParam    --keyspace     REDIS_KEYSPACE
-###SHELLPACK parseargParam    --min-threads  REDIS_MIN_THREADS
-###SHELLPACK parseargParam    --max-threads  REDIS_MAX_THREADS
+###SHELLPACK parseargParam    --pipeline     REDIS_PIPELINE
+###SHELLPACK parseargParam    --min-clients  REDIS_MIN_CLIENTS
+###SHELLPACK parseargParam    --max-clients  REDIS_MAX_CLIENTS
 ###SHELLPACK parseargEnd
 ###SHELLPACK monitor_hooks
 
-###SHELLPACK check_install_required redis-${VERSION}
+###SHELLPACK check_external_install_required redisbuild redisbuild-${VERSION} ${VERSION}
 ###SHELLPACK init_complete
 
-export PATH=$SHELLPACK_SOURCES/redis-${VERSION}-installed/bin:$PATH
-REDIS_CONF=$SHELLPACK_SOURCES/redis-${VERSION}-installed/etc/redis-${REDIS_PERSISTENCE}.conf
+export PATH=$SHELLPACK_SOURCES/redisbuild-${VERSION}-installed/bin:$PATH
+REDIS_CONF=$SHELLPACK_SOURCES/redisbuild-${VERSION}-installed/etc/redis-${REDIS_PERSISTENCE}.conf
 REDIS_PIDFILE=/tmp/redis-mmtests.pid
 
 server_start() {
@@ -51,6 +52,8 @@ server_start() {
 	REDIS_PID=$!
 	echo $REDIS_PID > $REDIS_PIDFILE
 	wait_on_pid_start $REDIS_PID
+	sleep 5
+	redis-cli flushall
 }
 
 server_stop() {
@@ -65,7 +68,7 @@ server_stop() {
 	fi
 	echo Killing old servers
 	redis-cli flushall 2> /dev/null
-	kill `cat $REDIS_PIDFILE` > /dev/null
+	redis-cli shutdown
 	wait_on_pid_exit `cat $REDIS_PIDFILE`
 	rm $REDIS_PIDFILE
 }
@@ -92,19 +95,22 @@ none)
 	;;
 esac
 
-###SHELLPACK threads_large_stride_begin $REDIS_MIN_THREADS $REDIS_MAX_THREADS
+server_start
+###SHELLPACK threads_large_stride_begin $REDIS_MIN_CLIENTS $REDIS_MAX_CLIENTS
+	CLIENT_THREADS=$REDIS_MEMTIER_THREADS
+	if [ $NR_THREADS -eq 1 ]; then
+		CLIENT_THREADS=1
+	fi
+	BENCH_CMD="redis-benchmark --csv -c $NR_THREADS --threads $CLIENT_THREADS -r $REDIS_KEYSPACE -n $REDIS_REQUESTS -P $REDIS_PIPELINE"
+	log_cmd $BENCH_CMD
 	monitor_pre_hook $LOGDIR_RESULTS $NR_THREADS
 	###SHELLPACK iteration_begin $REDIS_ITERATIONS
-		server_start
 		mmtests_activity $NR_THREADS-$ITERATION
 		echo Running test $NR_THREADS threads iteration $ITERATION/$REDIS_ITERATIONS
-		redis-benchmark --csv \
-			-c $NR_THREADS		\
-			-r $REDIS_KEYSPACE	\
-			-n $REDIS_REQUESTS 2>&1 | tee $LOGDIR_RESULTS/redis-${NR_THREADS}-${ITERATION}.log
-		server_stop
+		eval $BENCH_CMD &> $LOGDIR_RESULTS/redis-${NR_THREADS}-${ITERATION}.log
 	###SHELLPACK iteration_end
 	monitor_post_hook $LOGDIR_RESULTS $NR_THREADS
 ###SHELLPACK threads_stride_end
+server_stop
 
 exit $SHELLPACK_SUCCESS

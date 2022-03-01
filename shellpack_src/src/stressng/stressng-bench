@@ -1,6 +1,6 @@
 #!/bin/bash
 
-###SHELLPACK preamble stressng-bench 0
+###SHELLPACK preamble stressng-bench V0.13.03
 
 STRESSNG_MIN_THREADS=1
 STRESSNG_MAX_THREADS=1
@@ -29,6 +29,9 @@ get)
 context)
 	TESTSWITCH="--context"
 	;;
+mmap)
+	TESTSWITCH="--mmap"
+	;;
 io-class)
 	TESTSWITCH="--class io"
 	;;
@@ -43,14 +46,17 @@ esac
 ###SHELLPACK threads_powertwo_begin $STRESSNG_MIN_THREADS $STRESSNG_MAX_THREADS
 	mmtests_activity $NR_THREADS
 	monitor_pre_hook $LOGDIR_RESULTS $NR_THREADS
+	BENCH_CMD=" ./stress-ng $TESTSWITCH $NR_THREADS --timeout ${STRESSNG_RUNTIME}s --metrics-brief"
+	log_cmd $BENCH_CMD
 
+	PRINT_NR_THREADS=$NR_THREADS
+	if [ $NR_THREADS -eq 0 ]; then
+		PRINT_NR_THREADS=$NUMCPUS
+	fi
 	###SHELLPACK iteration_begin $STRESSNG_ITERATIONS
-		echo Running $NR_THREADS stressng $STRESSNG_TESTNAME iteration $ITERATION
-		$TIME_CMD -o $LOGDIR_RESULTS/time-$NR_THREADS-$ITERATION \
-			./stress-ng $TESTSWITCH $NR_THREADS \
-				--timeout ${STRESSNG_RUNTIME}s \
-				--metrics-brief 2>&1 |\
-				tee $LOGDIR_RESULTS/stressng-$NR_THREADS-$ITERATION.log
+		echo Running $PRINT_NR_THREADS stressng $STRESSNG_TESTNAME iteration $ITERATION
+		eval $TIME_CMD -o $LOGDIR_RESULTS/time-$NR_THREADS-$ITERATION \
+			$BENCH_CMD &> $LOGDIR_RESULTS/stressng-$NR_THREADS-$ITERATION.log
 	###SHELLPACK iteration_end $STRESSNG_ITERATIONS
 
 	monitor_post_hook $LOGDIR_RESULTS $NR_THREADS

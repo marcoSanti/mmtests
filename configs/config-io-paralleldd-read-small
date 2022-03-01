@@ -3,7 +3,6 @@
 ### multiple processes can read the same data quickly if there are
 ### multiple stalls due to internal serialisation within the kernel.
 
-# MM Test Parameters
 export MMTESTS="paralleldd"
 
 # Test disk to setup (optional)
@@ -20,7 +19,7 @@ export MMTESTS="paralleldd"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top"
+export MONITORS_GZIP="proc-vmstat top iotop"
 export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 

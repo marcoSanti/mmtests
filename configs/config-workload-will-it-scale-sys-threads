@@ -1,0 +1,18 @@
+### will-is-scale is a set of microbench that run a test case from 1 to N
+### parallel threads to see if it scales. This configuration runs
+### through the benchmarks that are common system calls.
+
+export MMTESTS="wis-futex wis-getppid wis-sched wis-pthreadmutex wis-signal wis-pipe wis-eventfd wis-posixsems"
+
+# List of monitors
+export RUN_MONITOR=yes
+export MONITORS_ALWAYS=
+export MONITORS_GZIP="proc-vmstat mpstat turbostat"
+export MONITORS_WITH_LATENCY="vmstat"
+export MONITOR_UPDATE_FREQUENCY=10
+
+# will-it-scale
+export WIS_ITERATIONS=5
+export WIS_MIN_THREADS=2
+export WIS_MAX_THREADS=$((NUMCPUS*2))
+export WIS_MODELS="threads"

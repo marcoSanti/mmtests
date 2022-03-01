@@ -7,7 +7,6 @@
 ### on good memory locality but it can suffer badly if automatic NUMA
 ### balancing gets in the way.
 
-# MM Test Parameters
 export MMTESTS="xfsrepair"
 
 # Test disk to setup (optional)
@@ -24,7 +23,7 @@ export MMTESTS="xfsrepair"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top"
+export MONITORS_GZIP="proc-vmstat top iotop"
 export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 

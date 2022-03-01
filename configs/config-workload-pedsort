@@ -8,7 +8,6 @@
 ### When all files have been pulled and the workqueue is empty, each
 ### core will merge the intermediate index files it produced.
 
-# MM Test Parameters
 export MMTESTS="pedsort"
 
 # Test disk to setup (optional)
@@ -25,8 +24,8 @@ export TESTDISK_FILESYSTEM=tmpfs
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top"
-export MONITORS_WITH_LATENCY="vmstat"
+export MONITORS_GZIP="proc-vmstat top iotop"
+export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 
 # pedsort

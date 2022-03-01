@@ -6,7 +6,6 @@
 ### o Burn CPUs to compete with kswapd for CPU
 ### o Allocate things
 
-# MM Test Parameters (no particular order)
 export MMTESTS="simoop"
 
 # Test disk to setup (optional)
@@ -23,7 +22,7 @@ export MMTESTS="simoop"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top"
+export MONITORS_GZIP="proc-vmstat top iotop"
 export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 

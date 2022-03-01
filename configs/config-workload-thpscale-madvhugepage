@@ -7,7 +7,6 @@
 ### 2 and 32 threads to allocate the final region and measures fault latency
 ### and whether base pages or THPs were used.
 
-# MM Test Parameters
 export MMTESTS="thpscale"
 
 # Test disk to setup (optional)
@@ -24,8 +23,8 @@ export MMTESTS="thpscale"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top"
-export MONITORS_WITH_LATENCY="vmstat"
+export MONITORS_GZIP="proc-vmstat top iotop"
+export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 
 # thpscale

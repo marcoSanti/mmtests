@@ -1,7 +1,7 @@
 ### NAS Parallel Benchmark (http://www.nas.nasa.gov/publications/npb.html) is a
 ### small set of benchmarks that was intended for use when evaluating
 ### supercomputers. They are all computational kernels. In this configuration,
-### the workload is parallelised on a single machine using MPI.
+### the workload is parallelised on a single machine using OpenMPI.
 
 # Test disk to setup (optional)
 #export TESTDISK_RAID_DEVICES=
@@ -17,12 +17,12 @@
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top mpstat"
-export MONITORS_WITH_LATENCY="vmstat iostat"
+export MONITORS_GZIP="proc-vmstat turbostat mpstat"
+export MONITORS_WITH_LATENCY="vmstat"
 export MONITOR_UPDATE_FREQUENCY=10
 
 # NAS Parallel Benchmark
-export NAS_OPENMPI_VERSION=openmpi
+export NAS_OPENMPI_VERSION=openmpi4
 export NAS_MPI_PATH=/usr/$MMTESTS_LIBDIR/mpi/gcc/$NAS_OPENMPI_VERSION/bin
 export NAS_MPI_LIBPATH=/usr/$MMTESTS_LIBDIR/mpi/gcc/$NAS_OPENMPI_VERSION/$MMTESTS_LIBDIR
 export NAS_CLASS=`nas-class.sh`
@@ -30,10 +30,15 @@ export NAS_USE_CMA=no
 export NAS_MAX_CPUS=$NUMCPUS
 export NAS_ITERATIONS=3
 
+if [ "$NAS_MAX_CPUS" -lt 4 ]; then
+	echo "ERROR: Too few CPUs ($NAS_MAX_CPUS) to parallelise loads requiring a square number of helpers"
+	exit -1
+fi
+
 # Set additional mpi options if required
 grep -q " ht " /proc/cpuinfo
 if [ $? -eq 0 ]; then
-	if [ $NAS_MAX_CPUS -ge $((NUMCPUS/2)) ]; then
+	if [ $NAS_MAX_CPUS -gt $((NUMCPUS/2)) ]; then
 		echo WARNING: Setting use-hwthread-cpus because HT siblings must be used
 		NAS_MPI_OPTS+=" --use-hwthread-cpus"
 	fi

@@ -2,7 +2,6 @@
 ### numbers of instances. signal_test is removed as it generates a lot of
 ### noise without being useful.
 
-# MM Test Parameters
 export MMTESTS="reaim"
 
 # Test disk to setup (optional)
@@ -16,11 +15,10 @@ export MMTESTS="reaim"
 #export TESTDISK_MKFS_PARAM="-f -d agcount=8"
 #export TESTDISK_MOUNT_ARGS=""
 
-
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top iotop mpstat"
+export MONITORS_GZIP="proc-vmstat top mpstat iotop"
 export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 

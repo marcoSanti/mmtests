@@ -1,0 +1,119 @@
+#!/bin/bash
+# This script installs redis and runs the benchmark suite tests
+###SHELLPACK preamble redis-memtier-bench 1.2.7
+
+TASKSET_SERVER=
+TASKSET_CLIENT=
+SERVER_HOST=127.0.0.1
+if [ "$REMOTE_SERVER_HOST" != "" ]; then
+	SERVER_HOST=$REMOTE_SERVER_HOST
+fi
+
+REDIS_VERSION=6.2.6
+
+###SHELLPACK parseargBegin
+###SHELLPACK parseargInstall
+###SHELLPACK parseargBindings
+###SHELLPACK parseargParam    --iterations	REDIS_MEMTIER_ITERATIONS
+###SHELLPACK parseargParam    --persistence	REDIS_MEMTIER_PERSISTENCE
+###SHELLPACK parseargParam    --requests	REDIS_MEMTIER_REQUESTS
+###SHELLPACK parseargParam    --keyspace-min	REDIS_MEMTIER_KEYSPACE_MIN
+###SHELLPACK parseargParam    --keyspace-max	REDIS_MEMTIER_KEYSPACE_MAX
+###SHELLPACK parseargParam    --keyspace-prefix	REDIS_MEMTIER_KEYSPACE_PREFIX
+###SHELLPACK parseargParam    --pipeline	REDIS_MEMTIER_PIPELINE
+###SHELLPACK parseargParam    --datasize	REDIS_MEMTIER_DATASIZE
+###SHELLPACK parseargParam    --min-clients	REDIS_MEMTIER_MIN_CLIENTS
+###SHELLPACK parseargParam    --max-clients	REDIS_MEMTIER_MAX_CLIENTS
+###SHELLPACK parseargEnd
+###SHELLPACK monitor_hooks
+
+###SHELLPACK check_external_install_required redisbuild redisbuild-${REDIS_VERSION} ${REDIS_VERSION}
+###SHELLPACK check_install_required redis-memtier-${VERSION}
+###SHELLPACK init_complete
+
+export PATH=$SHELLPACK_SOURCES/redisbuild-${REDIS_VERSION}-installed/bin:$PATH
+export PATH=$SHELLPACK_SOURCES/redis-memtier-${VERSION}-installed/bin:$PATH
+REDIS_CONF=$SHELLPACK_SOURCES/redisbuild-${REDIS_VERSION}-installed/etc/redis-${REDIS_MEMTIER_PERSISTENCE}.conf
+REDIS_PIDFILE=/tmp/redis-mmtests.pid
+
+server_start() {
+	if [ "$REMOTE_SERVER_HOST" != "" ]; then
+		mmtests_server_ctl start --serverside-name $NR_THREADS-$ITERATION
+	fi
+
+	if [ -e $REDIS_PIDFILE ]; then
+		echo Killing old servers
+		redis-cli flushall 2>&1 > /dev/null
+		kill `cat $REDIS_PIDFILE 2> /dev/null` 2> /dev/null
+		wait_on_pid_exit $REDIS_PIDFILE
+		rm $REDIS_PIDFILE
+	fi
+
+	echo Starting server
+	mmtests_activity redis-$SERVERSIDE_NAME
+	ulimit -n 15000
+	sysctl net.core.somaxconn=512
+	
+	monitor_pre_hook $LOGDIR_RESULTS redis-$SERVERSIDE_NAME
+	$TASKSET_SERVER redis-server $REDIS_CONF 2>&1 > $LOGDIR_RESULTS/redis-server.log &
+	REDIS_PID=$!
+	echo $REDIS_PID > $REDIS_PIDFILE
+	wait_on_pid_start $REDIS_PID
+	redis-cli flushall 2>&1 > /dev/null
+}
+
+server_stop() {
+	if [ "$REMOTE_SERVER_HOST" != "" ]; then
+		mmtests_server_ctl stop --serverside-name $NR_THREADS-$ITERATION
+	fi
+
+	monitor_post_hook $LOGDIR_RESULTS redis-$SERVERSIDE_NAME
+
+	if [ ! -e $REDIS_PIDFILE ]; then
+		return
+	fi
+	echo Killing old servers
+	redis-cli flushall 2> /dev/null
+	kill `cat $REDIS_PIDFILE` > /dev/null
+	wait_on_pid_exit `cat $REDIS_PIDFILE`
+	rm $REDIS_PIDFILE
+}
+
+export REMOTE_SERVER_SCRIPT=$SCRIPTDIR/shellpacks/shellpack-bench-redis
+case $SERVERSIDE_COMMAND in
+start)
+	server_start
+	exit $SHELLPACK_SUCCESS
+	;;
+stop)
+	server_stop
+	exit $SHELLPACK_SUCCESS
+	;;
+flush)
+	redis-cli flushall
+	exit $SHELLPACK_SUCCESS
+	;;
+none)
+	server_stop
+	;;
+*)
+	die Unrecognised server-side command
+	;;
+esac
+
+server_start
+###SHELLPACK threads_large_stride_begin $REDIS_MEMTIER_MIN_CLIENTS $REDIS_MEMTIER_MAX_CLIENTS
+	BENCH_CMD="memtier_benchmark --threads=$REDIS_MEMTIER_THREADS --clients=$NR_THREADS --pipeline=$REDIS_MEMTIER_PIPELINE --data-size=$REDIS_MEMTIER_DATASIZE --requests=$REDIS_MEMTIER_REQUESTS --key-minimum=$REDIS_MEMTIER_KEYSPACE_MIN --key-maximum=$REDIS_MEMTIER_KEYSPACE_MAX -n $((REDIS_MEMTIER_KEYSPACE_MAX*2)) --key-prefix=$REDIS_MEMTIER_KEYSPACE_PREFIX"
+	log_cmd $BENCH_CMD
+
+	monitor_pre_hook $LOGDIR_RESULTS $NR_THREADS
+	###SHELLPACK iteration_begin $REDIS_MEMTIER_ITERATIONS
+		mmtests_activity $NR_THREADS-$ITERATION
+		echo Running test $NR_THREADS threads iteration $ITERATION/$REDIS_MEMTIER_ITERATIONS
+		eval $BENCH_CMD &> $LOGDIR_RESULTS/redis-memtier-${NR_THREADS}-${ITERATION}.log
+	###SHELLPACK iteration_end
+	monitor_post_hook $LOGDIR_RESULTS $NR_THREADS
+###SHELLPACK threads_stride_end
+server_stop
+
+exit $SHELLPACK_SUCCESS

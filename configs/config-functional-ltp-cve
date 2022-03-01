@@ -1,8 +1,6 @@
 ### Runs tests specific to CVEs
 
-# MM Test Parameters
 export MMTESTS="ltp"
-
 
 # Test disk to setup (optional)
 #export TESTDISK_RAID_DEVICES=

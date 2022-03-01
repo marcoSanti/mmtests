@@ -484,13 +484,16 @@ for SUBREPORT in $REPORTS; do
 		echo "<pre>"
 	fi
 
-	for OPTFILE in compiler.opts runtime.opts sysctl.opts; do
-		OPTS=`find -maxdepth 4 -name "$OPTFILE" | head -1`
-		if [ "$OPTS" != "" ]; then
-			cat $OPTS | uniq
-			echo
-		fi
-	done
+	if [ "$OPTFILE_DISPLAYED" != "yes" ]; then
+		OPTFILE_DISPLAYED=yes
+		for OPTFILE in compiler.opts runtime.opts sysctl.opts; do
+			OPTS=`find $KERNEL_BASE -maxdepth 4 -name "$OPTFILE" | head -1`
+			if [ "$OPTS" != "" ]; then
+				cat $OPTS | uniq
+				echo
+			fi
+		done
+	fi
 
 	if [ "$FORMAT" = "html" ]; then
 		echo "</pre>"
@@ -521,12 +524,12 @@ for SUBREPORT in $REPORTS; do
 			cache-mmtests.sh compare-mmtests.pl -d . -b dbench4 -a opslatency -n $KERNEL_LIST $FORMAT_CMD
 		fi
 		;;
-	bonniepp|bonnie)
+	bonniepp)
 		echo "bonnie IO Execution Time"
-		cache-mmtests.sh compare-mmtests.pl -d . -b bonnie -n $KERNEL_LIST $FORMAT_CMD $AUTO_DETECT_SIGNIFICANCE
+		cache-mmtests.sh compare-mmtests.pl -d . -b bonniepp -n $KERNEL_LIST $FORMAT_CMD $AUTO_DETECT_SIGNIFICANCE
 		echo
 		echo "bonnie Throughput"
-		cache-mmtests.sh compare-mmtests.pl -d . -b bonnie -a tput -n $KERNEL_LIST $FORMAT_CMD
+		cache-mmtests.sh compare-mmtests.pl -d . -b bonniepp -a tput -n $KERNEL_LIST $FORMAT_CMD
 		echo
 		;;
 	ebizzy)
@@ -684,6 +687,39 @@ for SUBREPORT in $REPORTS; do
 		echo
 		echo $SUBREPORT Time
 		cache-mmtests.sh compare-mmtests.pl -d . -b sysbench -a exectime -n $KERNEL_LIST $FORMAT_CMD
+		echo
+		;;
+	tbench4)
+		echo $SUBREPORT Loadfile Execution Time
+		eval $COMPARE_CMD
+		echo
+		if [ "$FROM_JSON" = "yes" ]; then
+			SUBREPORT_NAMES=('Latency' 'Throughput (misleading but traditional)' 'Per-VFS Operation latency Latency')
+
+			min=$(( ${#SUBREPORTS_JSON[@]} < ${#SUBREPORT_NAMES[@]} ?	${#SUBREPORTS_JSON[@]} : ${#SUBREPORT_NAMES[@]} ))
+			for ((i=start; i<min; i++)) do
+				echo "$SUBREPORT ${SUBREPORT_NAMES[$i]}"
+				cache-mmtests.sh compare-mmtests.pl -d . -b tbench4 --from-json ${SUBREPORTS_JSON[$i]}
+				echo
+			done
+		else
+			echo $SUBREPORT Latency
+			cache-mmtests.sh compare-mmtests.pl -d . -b tbench4 -a latency -n $KERNEL_LIST $FORMAT_CMD
+			echo
+			echo "$SUBREPORT Throughput (misleading but traditional)"
+			cache-mmtests.sh compare-mmtests.pl -d . -b tbench4 -a tput -n $KERNEL_LIST $FORMAT_CMD
+			echo
+			echo $SUBREPORT Per-VFS Operation latency Latency
+			cache-mmtests.sh compare-mmtests.pl -d . -b tbench4 -a opslatency -n $KERNEL_LIST $FORMAT_CMD
+		fi
+		;;
+
+	trunc)
+		echo $SUBREPORT Truncate all files
+		eval $COMPARE_CMD
+		echo
+		echo $SUBREPORT Fault each file
+		cache-mmtests.sh compare-mmtests.pl -d . -b trunc -a fault -n $KERNEL_LIST $FORMAT_CMD
 		echo
 		;;
 	thp*scale)

@@ -10,7 +10,6 @@
 ### behaviour of a mail server and provides a point of comparison with
 ### postmark.
 
-# MM Test Parameters
 export MMTESTS="postmark ffsb"
 
 # Test disk to setup (optional)
@@ -27,7 +26,7 @@ export MMTESTS="postmark ffsb"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat top"
+export MONITORS_GZIP="proc-vmstat top iotop"
 export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 

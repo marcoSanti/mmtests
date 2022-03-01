@@ -10,7 +10,6 @@
 ### gitcheckout checks out two kernel version from a git tree in rapid succession
 ### and measures how long it takes
 
-# MM Test Parameters
 export MMTESTS="kernbench gitcheckout"
 
 # Test disk to setup (optional)
@@ -27,8 +26,8 @@ export MMTESTS="kernbench gitcheckout"
 # List of monitors
 export RUN_MONITOR=yes
 export MONITORS_ALWAYS=
-export MONITORS_GZIP="proc-vmstat mpstat"
-export MONITORS_WITH_LATENCY="vmstat"
+export MONITORS_GZIP="proc-vmstat mpstat iotop"
+export MONITORS_WITH_LATENCY="vmstat iostat"
 export MONITOR_UPDATE_FREQUENCY=10
 
 # kernbench
